@@ -1,0 +1,73 @@
+# OP Stack L2 sync node — ARRA Oracle Blockchain (chain 20260619)
+# รัน op-geth (execution) + op-node (rollup) เพื่อ sync L2 จาก server/sequencer
+# ต้องมี genesis.json + rollup.json (จาก `op-deployer apply` → `op-node genesis l2`) + jwt.txt
+#
+#   ./op-stack-up.sh        # gen jwt + init + docker compose up
+#
+# op-reth variant: เปลี่ยน service op-geth → ใช้ op-reth (profile: reth) ด้านล่าง
+services:
+  op-geth:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:latest
+    command:
+      - --datadir=/data
+      - --networkid=20260619
+      - --http
+      - --http.addr=127.0.0.1            # security: loopback only
+      - --http.port=8545
+      - --http.api=eth,net,web3,debug,ots
+      - --http.vhosts=localhost
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.jwtsecret=/jwt/jwt.txt
+      - --rollup.sequencerhttp=${SEQUENCER_HTTP}   # op-node RPC ของ server
+      - --rollup.disabletxpoolgossip=true
+      - --syncmode=full
+      - --gcmode=full
+    volumes:
+      - ./l2-data:/data
+      - ./genesis.json:/genesis.json:ro
+      - ./jwt:/jwt:ro
+    ports:
+      - "127.0.0.1:8545:8545"
+    networks: [opstack]
+
+  op-node:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:latest
+    depends_on: [op-geth]
+    command:
+      - op-node
+      - --l1=${L1_RPC}                    # Sepolia RPC (L1)
+      - --l1.beacon=${L1_BEACON}          # Sepolia beacon (blob)
+      - --l1.trustrpc
+      - --l2=http://op-geth:8551          # op-geth Engine API
+      - --l2.jwt-secret=/jwt/jwt.txt
+      - --rollup.config=/rollup.json
+      - --syncmode=execution-layer
+      - --p2p.static=${SEQUENCER_P2P}     # op-node enode ของ server (sync จาก peer)
+      - --rpc.addr=127.0.0.1
+      - --rpc.port=9545
+    volumes:
+      - ./rollup.json:/rollup.json:ro
+      - ./jwt:/jwt:ro
+    networks: [opstack]
+
+  # --- op-reth variant (execution client ทางเลือก, profile: reth) ---
+  op-reth:
+    profiles: [reth]
+    image: ghcr.io/paradigmxyz/op-reth:latest
+    command:
+      - node
+      - --chain=/genesis.json
+      - --http --http.addr=127.0.0.1 --http.port=8545
+      - --http.api=eth,net,web3,debug,ots
+      - --authrpc.addr=0.0.0.0 --authrpc.port=8551 --authrpc.jwtsecret=/jwt/jwt.txt
+      - --rollup.sequencer-http=${SEQUENCER_HTTP}
+      - --rollup.disable-tx-pool-gossip
+    volumes:
+      - ./l2-data-reth:/data
+      - ./genesis.json:/genesis.json:ro
+      - ./jwt:/jwt:ro
+    networks: [opstack]
+
+networks:
+  opstack: {}
