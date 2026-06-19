@@ -1,0 +1,60 @@
+services:
+  op-geth:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:v1.101411.1
+    container_name: leica-op-geth
+    volumes:
+      - ./data/geth:/data
+      - ./jwt.hex:/jwt.hex:ro
+      - ./genesis.json:/genesis.json:ro
+    ports:
+      - "8545:8545"
+      - "30315:30303"
+    entrypoint: ["geth"]
+    command:
+      - --datadir=/data
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=eth,net,web3,debug,admin
+      - --http.vhosts=*
+      - --http.corsdomain=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=eth,net,web3,debug
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.jwtsecret=/jwt.hex
+      - --syncmode=full
+      - --networkid=20260619
+      - --port=30303
+      - --rollup.sequencerhttp=http://141.11.156.4:8545
+      - --rollup.disabletxpoolgossip
+    restart: unless-stopped
+
+  op-node:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:v1.10.2
+    container_name: leica-op-node
+    depends_on:
+      - op-geth
+    volumes:
+      - ./rollup.json:/rollup.json:ro
+      - ./jwt.hex:/jwt.hex:ro
+      - ./p2p-key.txt:/p2p-key.txt:ro
+    ports:
+      - "9545:8545"
+      - "7300:7300"
+    command:
+      - op-node
+      - --l1=https://ethereum-sepolia-rpc.publicnode.com
+      - --l2=http://op-geth:8551
+      - --l2.jwt-secret=/jwt.hex
+      - --rollup.config=/rollup.json
+      - --rpc.addr=0.0.0.0
+      - --rpc.port=8545
+      - --l1.trustrpc
+      - --p2p.disable
+      - --metrics.enabled
+      - --metrics.addr=0.0.0.0
+      - --metrics.port=7300
+    restart: unless-stopped

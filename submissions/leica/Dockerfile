@@ -1,7 +1,6 @@
-FROM ethereum/client-go:v1.13.15
+FROM docker:27-cli
+RUN apk add --no-cache bash openssl curl jq
 WORKDIR /app
-COPY genesis.json .
-COPY run.sh .
+COPY . .
 RUN chmod +x run.sh
-EXPOSE 8545 30315
 ENTRYPOINT ["./run.sh"]
