@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  op-geth:
+    image: us-docker.pkg.dev/oplabs-tools-and-services/images/op-geth:latest
+    container_name: op-geth-sombo
+    restart: unless-stopped
+    ports:
+      - "9645:8545" # L2 HTTP RPC
+      - "9646:8546" # L2 WS RPC
+      - "9651:8551" # Engine API
+      - "30316:30303/tcp"
+      - "30316:30303/udp"
+    volumes:
+      - ./geth-data:/db
+      - ./jwt.txt:/config/jwt.txt
+      - ./genesis.json:/config/genesis.json
+    entrypoint:
+      - geth
+      - --datadir=/db
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --http.api=eth,net,web3,debug,txpool
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.origins=*
+      - --ws.api=eth,net,web3,debug,txpool
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.vhosts=*
+      - --authrpc.jwtsecret=/config/jwt.txt
+      - --rollup.disabletxpoolgossip=true
+      - --syncmode=full
+      - --nodiscover
+
+  op-node:
+    image: us-docker.pkg.dev/oplabs-tools-and-services/images/op-node:latest
+    container_name: op-node-sombo
+    restart: unless-stopped
+    depends_on:
+      - op-geth
+    ports:
+      - "9226:9222/tcp" # P2P TCP
+      - "9226:9222/udp" # P2P UDP
+    volumes:
+      - ./jwt.txt:/config/jwt.txt
+      - ./rollup.json:/config/rollup.json
+    env_file:
+      - .env
+    entrypoint:
+      - op-node
+      - --l2.engine=http://op-geth:8551
+      - --l2.jwt-secret=/config/jwt.txt
+      - --rollup.config=/config/rollup.json
+      - --l1=$L1_RPC_URL
+      - --l1.beacon=$L1_BEACON_URL
+      - --p2p.listen.ip=0.0.0.0
+      - --p2p.listen.tcp=9222
+      - --p2p.listen.udp=9222
+      - --p2p.bootnodes=enr:-J-4QNU5QFogdvzllbaGnoY7XEyUV5i3e2c2XCcwQfXUCua9UYRmEskeok-oWjb_KpeZ-CKgdTX-Ebv5EyCXLNSM6a-GAZ7ezduCgmlkgnY0gmlwhI0LnASHb3BzdGFja4WLztQJAIlzZWNwMjU2azGhA91gWuRRRggSW4M6KMW_88k_nQhDXbsTHFPECmTwjORIg3RjcIIkBoN1ZHCCnV8
+      - --verifier.l1-confs=4
