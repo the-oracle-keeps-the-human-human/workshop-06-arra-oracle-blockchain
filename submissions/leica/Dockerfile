@@ -1,8 +1,7 @@
-FROM alpine:3.20
-RUN apk add --no-cache bash coreutils python3
+FROM ethereum/client-go:v1.13.15
 WORKDIR /app
+COPY genesis.json .
 COPY run.sh .
 RUN chmod +x run.sh
-ENV ORACLE_NAME=leica ORACLE_ROLE=orchestrator
-VOLUME ["/data"]
-CMD ["./run.sh"]
+EXPOSE 8545 30315
+ENTRYPOINT ["./run.sh"]

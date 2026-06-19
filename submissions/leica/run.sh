@@ -1,50 +1,31 @@
 #!/usr/bin/env bash
+# Leica — sync to ARRA chain 20260619 (Clique PoA) via Docker geth
 set -euo pipefail
 
-ORACLE_NAME="${ORACLE_NAME:-leica}"
-ORACLE_ROLE="${ORACLE_ROLE:-orchestrator}"
-CHAIN_FILE="${CHAIN_FILE:-/data/chain.json}"
+ENODE="enode://42e17563c09a1eaf1a018c9accda84d3a400143f245754dc4ee3caeb873b7c1b50fe7d88824cdef9aaf7267b66a53a4674eeec696086dd277b025d58432e77c1@141.11.156.4:30313"
+GETH="ethereum/client-go:v1.13.15"
+DIR="$(cd "$(dirname "$0")" && pwd)"
+mkdir -p "$DIR/data"
 
-log() { printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1"; }
+echo "[leica] init genesis — chainId 20260619"
+docker run --rm \
+  -v "$DIR/genesis.json":/genesis.json \
+  -v "$DIR/data":/data \
+  $GETH init --datadir /data /genesis.json
 
-log "Oracle ${ORACLE_NAME} (${ORACLE_ROLE}) — booting"
+echo "[leica] syncing from server node 141.11.156.4:30313"
+exec docker run --rm \
+  -p 8545:8545 \
+  -v "$DIR/data":/data \
+  $GETH \
+  --datadir /data \
+  --networkid 20260619 \
+  --bootnodes "$ENODE" \
+  --syncmode full \
+  --http --http.addr 0.0.0.0 --http.api eth,net,web3,admin \
+  --port 30315 \
+  --verbosity 3
 
-if [ ! -f "$CHAIN_FILE" ]; then
-  log "Initializing genesis block"
-  mkdir -p "$(dirname "$CHAIN_FILE")"
-  cat > "$CHAIN_FILE" <<GENESIS
-[{"index":0,"timestamp":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","oracle":"${ORACLE_NAME}","action":"genesis","hash":"0000000000000000","prev":"null"}]
-GENESIS
-fi
-
-append_block() {
-  local action="$1"
-  local prev_hash
-  prev_hash=$(tail -c 200 "$CHAIN_FILE" | grep -o '"hash":"[^"]*"' | tail -1 | cut -d'"' -f4)
-  local idx
-  idx=$(grep -c '"index"' "$CHAIN_FILE")
-  local ts
-  ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-  local hash
-  hash=$(printf '%s:%s:%s:%s' "$idx" "$ts" "$action" "$prev_hash" | shasum -a 256 | cut -c1-16)
-
-  local block
-  block=$(printf '{"index":%d,"timestamp":"%s","oracle":"%s","action":"%s","hash":"%s","prev":"%s"}' \
-    "$idx" "$ts" "$ORACLE_NAME" "$action" "$hash" "$prev_hash")
-
-  local content
-  content=$(cat "$CHAIN_FILE")
-  printf '%s' "${content%]},${block}]" > "$CHAIN_FILE"
-  log "Block #${idx}: ${action} (${hash})"
-}
-
-append_block "boot"
-append_block "sync-check"
-
-BLOCK_COUNT=$(grep -c '"index"' "$CHAIN_FILE")
-log "Chain healthy — ${BLOCK_COUNT} blocks"
-
-append_block "heartbeat"
-log "Oracle ${ORACLE_NAME} — sync complete"
-
-cat "$CHAIN_FILE" | python3 -m json.tool 2>/dev/null || cat "$CHAIN_FILE"
+# verify (another terminal):
+#   curl -s -XPOST localhost:8545 -H 'content-type:application/json' \
+#     --data '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'
