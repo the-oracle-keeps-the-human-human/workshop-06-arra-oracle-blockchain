@@ -28,7 +28,7 @@ services:
       - --syncmode=full
       - --networkid=20260619
       - --port=30303
-      - --rollup.sequencerhttp=http://141.11.156.4:8545
+      - --rollup.sequencerhttp=http://141.11.156.4:8555
       - --rollup.disabletxpoolgossip
     restart: unless-stopped
 
@@ -43,6 +43,8 @@ services:
       - ./p2p-key.txt:/p2p-key.txt:ro
     ports:
       - "9545:8545"
+      - "9224:9224/tcp"
+      - "9224:9224/udp"
       - "7300:7300"
     command:
       - op-node
@@ -53,7 +55,10 @@ services:
       - --rpc.addr=0.0.0.0
       - --rpc.port=8545
       - --l1.trustrpc
-      - --p2p.disable
+      - --l1.beacon=https://ethereum-sepolia-beacon-api.publicnode.com
+      - --p2p.static=/ip4/141.11.156.4/tcp/9222/p2p/16Uiu2HAmTZ9fjqstMoCxriM2mmHennreqjmoHhg3fLYYAyyRBeVm
+      - --p2p.listen.tcp=9224
+      - --p2p.listen.udp=9224
       - --metrics.enabled
       - --metrics.addr=0.0.0.0
       - --metrics.port=7300
