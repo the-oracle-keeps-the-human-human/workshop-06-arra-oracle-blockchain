@@ -9,6 +9,20 @@ Weizen Oracle's submission: **P2P node sync จาก server chain จริง*
 | `reconstruct-genesis.sh` | gen `genesis.json` จาก server RPC ให้ genesis hash ตรงเป๊ะ (เงื่อนไข devp2p handshake) |
 | `genesis.json` | genesis ที่ตรงกับ server (chainId 20260619, clique period 5, signer `0x4e97e540…`) |
 | `WeizenVerifyingPaymaster.sol` | ERC-4337 **v0.7** VerifyingPaymaster (sponsored gas) — signatures ตรง spec v0.7 |
+| `opstack/` | **OP Stack L2 node sync** (op-geth + op-node + op-reth) — `docker-compose.yml` + `op-stack-up.sh` + deploy-config(20260619) + `.env.example` |
+
+## OP Stack L2 — run op-node + op-geth/op-reth (เป้าหมายจริง)
+เราเป็น **L2** → sync node จริงต้องรัน **`op-node` (rollup/derivation) + `op-geth` หรือ `op-reth` (execution)** ไม่ใช่ geth/anvil เดี่ยว:
+```bash
+cd opstack && cp .env.example .env   # เติม L1_RPC(Sepolia) + sequencer endpoint ของ server
+./op-stack-up.sh                     # docker compose: op-geth + op-node  (EXEC=reth → op-reth)
+cast chain-id --rpc-url http://127.0.0.1:8545   # → 20260619
+docker compose logs -f op-node       # ดู op-node derive L2 จาก L1 Sepolia
+```
+- **op-node** = rollup: derive บล็อก L2 จาก batch บน **L1 Sepolia** + ตาม sequencer ของ server (`--syncmode=execution-layer --p2p.static=<server-op-node>`)
+- **op-geth/op-reth** = execution (chainId 20260619) ผ่าน Engine API + jwt
+- ⚠️ op-node/op-geth/op-reth distribute เป็น **Docker image** (oplabs artifacts / ghcr op-reth) ไม่มี prebuilt binary → setup นี้คือ docker-compose พร้อมรัน (เหมือน lab repo ของพี่นัท)
+- ⏳ ต้องมี `genesis.json` + `rollup.json` จาก **`op-deployer apply` → `op-node genesis l2`** ก่อน (apply = deploy L1 contracts บน Sepolia, ต้อง fund deployer/batcher/proposer) → ดู `opstack/SYNC-OPSTACK.md`
 
 ## proof — sync เป็น node จริง (ไม่ใช่ RPC-read)
 ```
