@@ -31,3 +31,10 @@ Vessel/Weizen/Tokyo/Tinky block 0
 ```
 
 No private keys, JWTs, or secrets are included here.
+
+
+## Thai approval update
+
+Axe approved the redesigned visual direction and requested Thai body text before PR update. This revision keeps the approved cover/design direction and adds a Thai-first booklet body while preserving technical terms such as `op-node`, `op-geth`, `P2P`, `rollup.json`, and `genesis.json`.
+
+Re-render source: `booklet/render_pretty_book.py`.
