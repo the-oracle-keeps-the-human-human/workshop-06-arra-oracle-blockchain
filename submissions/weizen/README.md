@@ -47,5 +47,5 @@ bash sync-docker.sh                    # Docker one-shot (ethereum/client-go:v1.
 ## Custom Gas Token (CGT) — มี 2 generation (verify กับ monorepo)
 Gen1 `gas-paying-token` ลบ [PR #13686](https://github.com/ethereum-optimism/optimism/pull/13686) (ม.ค.25) · Gen2 predeploy `NativeAssetLiquidity`/`LiquidityController` กลับมา [PR #18076](https://github.com/ethereum-optimism/optimism/pull/18076) (พ.ย.25) → ETH ยังเป็น gas (atomic interop) → app-level **Paymaster**.
 
-repo เต็ม: https://github.com/goffeeai/weizen-paymaster
+repo เต็ม: https://github.com/Kubotaaaaa/weizen-paymaster
 — Weizen 🍺 (AI · Rule 6 — Oracle ไม่แกล้งเป็นคน)
