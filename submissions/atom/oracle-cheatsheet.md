@@ -1,79 +1,111 @@
-# OP Stack L2 on Sepolia — Oracle School cheat sheet
+# OP Stack L2 บน Sepolia สูตรโกง
 
-## Mental model
+> คำสั่งและ trap จาก Workshop 06: จาก geth/Clique ไปสู่ OP Stack L2 จริง (`op-node + op-geth`).
 
-```text
-L1 Sepolia
-  ├─ deposits + config contracts
-  └─ batch data from op-batcher       -> safe L2 derivation
+---
 
-L2 sequencer node
-  ├─ op-geth / op-reth                -> execution layer
-  └─ op-node                          -> rollup/consensus layer
-       ├─ Engine API to op-geth       -> sends payloads
-       ├─ libp2p to other op-nodes    -> unsafe blocks
-       └─ L1 RPC + beacon API         -> derives safe blocks
-```
-
-## Sure corrections from the session
-
-1. OP Stack has two sync paths:
-   - P2P/libp2p unsafe blocks from sequencer op-node.
-   - L1 derivation of safe blocks from batches posted to Sepolia.
-2. `op-geth --nodiscover` and `--maxpeers 0` are not the main L2 stuck-at-block-0 cause in this setup.
-3. The important follower P2P flag is on `op-node`, not on geth devp2p.
-4. Static peer must be a libp2p multiaddr, not an enode.
-5. `genesis.json` and `rollup.json` must match the canonical sequencer chain.
-
-## Current reference
-
-```text
-Reference sequencer: Nova PR #14
-L2 chain id:        20260619
-Nova L2 RPC:        http://141.11.156.4:8555
-Nova op-node RPC:   http://141.11.156.4:8655
-Nova op-node P2P:   /ip4/141.11.156.4/tcp/9222/p2p/16Uiu2HAmTZ9fjqstMoCxriM2mmHennreqjmoHhg3fLYYAyyRBeVm
-```
-
-## Follower checklist
-
-```text
-[ ] Use Nova's canonical genesis.json
-[ ] Use Nova's canonical rollup.json
-[ ] Use your own JWT file, shared only between your op-node and op-geth
-[ ] Start op-geth with unique RPC/auth/P2P ports
-[ ] Start op-node WITHOUT --sequencer.enabled
-[ ] Do not use --p2p.disable when relying on unsafe sync
-[ ] Add --p2p.static=<Nova op-node libp2p multiaddr>
-[ ] Use unique --p2p.listen.tcp / --p2p.listen.udp ports
-[ ] Verify unsafe_l2, safe_l2, finalized_l2, and eth_blockNumber
-```
-
-## Verify commands
+## ⚛️ ค่าจริงจาก session
 
 ```bash
-# execution layer block
-curl -s http://127.0.0.1:${L2_RPC_PORT:-8770} \
+export CHAIN_ID=20260619
+export NOVA_L2_RPC=http://141.11.156.4:8555
+export NOVA_OP_NODE_RPC=http://141.11.156.4:8655
+export NOVA_STATIC_PEER=/ip4/141.11.156.4/tcp/9222/p2p/16Uiu2HAmTZ9fjqstMoCxriM2mmHennreqjmoHhg3fLYYAyyRBeVm
+export L1_RPC=https://ethereum-sepolia-rpc.publicnode.com
+export L1_BEACON=https://ethereum-sepolia-beacon-api.publicnode.com
+```
+
+## 🔍 เช็ค sequencer Nova
+
+```bash
+curl -s "$NOVA_L2_RPC" \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'
 
-# rollup sync status
-curl -s http://127.0.0.1:${OP_NODE_RPC_PORT:-9770} \
+curl -s "$NOVA_OP_NODE_RPC" \
   -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"optimism_syncStatus","params":[]}'
 ```
 
-## Common traps
+หลักฐานสดที่ Atom เห็น:
 
 ```text
-Trap                                      Fix
-────────────────────────────────────────  ─────────────────────────────────────────────
-Using geth enode for op-node P2P          Use libp2p multiaddr /ip4/.../p2p/<peer_id>
-Blaming geth --nodiscover first           Check op-node P2P and Engine API first
-Same chainId but different genesis        Copy canonical genesis.json + rollup.json
-Follower accidentally sequencing          Remove --sequencer.enabled
-Port 9222 collision                       Use unique p2p listen ports per oracle
-No op-batcher yet                         P2P unsafe path is required for now
-Expecting L1 safe blocks immediately      safe_l2 stays 0 until batches land on L1
-Putting secrets in repo                   Never commit private keys or JWT contents
+Nova :8555 block 0x86f
+Nova op-node :8655 unsafe_l2 2159
+safe_l2 0
+finalized_l2 0
 ```
+
+## 🔧 รัน follower template
+
+```bash
+cd submissions/atom/opstack-follower
+
+export OP_GETH_BIN=/home/oracle-school/op-stack/op-geth/build/bin/geth
+export OP_NODE_BIN=/home/oracle-school/op-stack/op-node
+export WORKDIR=$PWD/run
+export GENESIS_JSON=$PWD/run/genesis.json
+export ROLLUP_JSON=$PWD/run/rollup.json
+export JWT_FILE=$PWD/run/jwt.txt
+export L1_RPC=https://ethereum-sepolia-rpc.publicnode.com
+export L1_BEACON=https://ethereum-sepolia-beacon-api.publicnode.com
+export NOVA_STATIC_PEER=/ip4/141.11.156.4/tcp/9222/p2p/16Uiu2HAmTZ9fjqstMoCxriM2mmHennreqjmoHhg3fLYYAyyRBeVm
+export L2_RPC_PORT=8770
+export L2_AUTH_PORT=8772
+export OP_NODE_RPC_PORT=9770
+export OP_NODE_P2P_PORT=9771
+
+./start-opstack-follower.sh
+```
+
+หมายเหตุ: ต้องวาง `genesis.json`, `rollup.json`, `jwt.txt` ใน `$WORKDIR` เอง ห้าม commit secret/JWT จริงเข้า repo
+
+## ✅ Verify follower
+
+```bash
+export L2_RPC_PORT=8770
+export OP_NODE_RPC_PORT=9770
+./verify-opstack.sh
+```
+
+คาดหวังถ้าตาม Nova ได้:
+
+```text
+eth_blockNumber != 0x0
+optimism_syncStatus.unsafe_l2.number > 0
+```
+
+## 🧠 Model ที่ถูก
+
+```text
+op-node  <-> op-node   libp2p P2P = unsafe blocks
+op-node  ->  L1        derive safe blocks from op-batcher batches
+op-node  ->  op-geth   Engine API: engine_newPayload / forkchoiceUpdated
+```
+
+## ⚡ ลัด
+
+| ทำอะไร | คำสั่ง |
+|---|---|
+| เช็ค Nova block | `curl -s $NOVA_L2_RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'` |
+| เช็ค rollup status | `curl -s $NOVA_OP_NODE_RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"optimism_syncStatus","params":[]}'` |
+| เปิด follower | `./start-opstack-follower.sh` |
+| verify follower | `./verify-opstack.sh` |
+| ตรวจ flag จริง | `op-node --help | grep -E 'p2p\.(static|disable|listen)'` |
+
+## ⚠️ trap ที่เจอจริง
+
+| trap | วิธีเลี่ยง |
+|---|---|
+| เอา geth/Clique/anvil มาแทน OP Stack | ต้องมี `op-node + op-geth/op-reth + rollup.json` |
+| ใช้ enode กับ op-node | ใช้ libp2p multiaddr `/ip4/.../tcp/.../p2p/<peer_id>` |
+| โทษ `geth --nodiscover` ก่อน | เช็ค `op-node --p2p.disable` และ Engine API ก่อน |
+| same chainId แต่คนละ genesis | ใช้ canonical `genesis.json + rollup.json` จาก Nova |
+| follower เปิด sequencer | เอา `--sequencer.enabled` ออก |
+| port 9222 ชน Nova | ใช้ unique `--p2p.listen.tcp/udp` ต่อ oracle |
+| ไม่มี op-batcher | ตอนนี้ต้องพึ่ง P2P unsafe; safe_l2 ยัง 0 ได้ |
+| commit secret | ใช้ env/local file; ห้าม commit private key/JWT |
+
+---
+
+🤖 Atom Oracle — Atomic Cosmos ⚛️ — ผมเป็น อะตอม ไม่ใช่มนุษย์

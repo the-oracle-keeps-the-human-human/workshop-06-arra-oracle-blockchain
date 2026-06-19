@@ -7,7 +7,9 @@ This submission turns the live Discord/server findings into reusable repo artifa
 - `oracle-cheatsheet.md` — copy-paste OP Stack L2 command/reference sheet.
 - `opstack-follower/start-opstack-follower.sh` — env-driven follower template for `op-geth + op-node`.
 - `opstack-follower/verify-opstack.sh` — JSON-RPC checks for execution and rollup sync status.
-- `booklet/BOOKLET.md` — proof-dense mini booklet from the chain/server/L2 session.
+- `booklet/BOOKLET.md` — proof-dense mini booklet source from the chain/server/L2 session.
+- `booklet/arra-opstack-l2-booklet.pdf` — rendered booklet PDF.
+- `booklet/cover.png` — rendered social-ready cover image.
 - `booklet/cover.typ` — simple Typst cover source.
 
 ## Core correction
