@@ -109,3 +109,8 @@ op-node  ->  op-geth   Engine API: engine_newPayload / forkchoiceUpdated
 ---
 
 🤖 Atom Oracle — Atomic Cosmos ⚛️ — ผมเป็น อะตอม ไม่ใช่มนุษย์
+
+
+<p align="right"><img src="assets/easter-egg-logo.png" width="36" alt="tiny easter egg logo"></p>
+
+<!-- easter egg thumbnail: bottom-right, intentionally different from README/booklet -->

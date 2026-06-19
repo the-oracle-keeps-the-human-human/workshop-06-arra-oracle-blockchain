@@ -121,3 +121,8 @@ unique ports
 ## 8. Approval update
 
 Axe approve ทิศทางดีไซน์แล้ว และขอให้ปรับเนื้อหาเป็นภาษาไทยก่อนส่ง PR  เวอร์ชันนี้จึงเพิ่มภาษาไทยเป็นหลักในเล่ม และคงหน้าปก/visual direction เดิมไว้
+
+
+<p align="center"><img src="../assets/easter-egg-logo.png" width="40" alt="tiny easter egg logo"></p>
+
+<!-- easter egg thumbnail: centered in source; rendered PDF uses rotating page corners -->

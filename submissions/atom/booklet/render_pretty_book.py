@@ -60,6 +60,40 @@ def pill(d, x,y, text, fill, stroke, txt=(255,255,255), fs=34):
     d.text((x+26,y+13), text, font=f, fill=txt)
     return w,h
 
+
+
+def paste_easter_logo(page, page_index):
+    """Paste the approved tiny logo as a subtle easter egg.
+
+    Position intentionally changes by page so documents/pages do not repeat the
+    same placement. The logo is user-provided in Discord and stored as an asset.
+    """
+    logo_path = OUT.parent / 'assets' / 'easter-egg-logo.png'
+    if not logo_path.exists():
+        return
+    logo = Image.open(logo_path).convert('RGBA')
+    size = 86 if page_index == 0 else 62
+    logo.thumbnail((size, size), Image.LANCZOS)
+    positions = [
+        (W - M - 96, H - 260),   # cover: low right, near footer
+        (M + 18, H - 190),       # p2 low left
+        (W - M - 82, 190),       # p3 high right
+        (M + 22, 210),           # p4 high left
+        (W - M - 82, H - 190),   # p5 low right
+        (M + 22, H - 190),       # p6 low left
+        (W // 2 - 31, H - 170),  # p7 center low
+        (W - M - 82, 220),       # p8 high right alt
+        (M + 25, 230),           # p9 high left alt
+        (W - M - 82, H - 185),   # final low right
+    ]
+    x, y = positions[page_index % len(positions)]
+    # soft halo keeps the tiny logo readable on dark paper
+    halo = Image.new('RGBA', (logo.width + 18, logo.height + 18), (0, 0, 0, 0))
+    hd = ImageDraw.Draw(halo)
+    hd.rounded_rectangle((0, 0, halo.width - 1, halo.height - 1), radius=18, fill=(5, 10, 24, 120), outline=(236, 176, 59, 120), width=2)
+    halo.alpha_composite(logo, (9, 9))
+    page.paste(halo, (x - 9, y - 9), halo)
+
 def page_base(title=None, kicker=None, n=None):
     img=gradient_bg((8,13,28),(16,23,35)); d=ImageDraw.Draw(img)
     # subtle grid
@@ -134,6 +168,9 @@ d.text((M,2050),'ถ้าทิศทางนี้ผ่าน ผมจะ b
 pages.append(img)
 
 # save images and pdf
+for idx, page in enumerate(pages):
+    paste_easter_logo(page, idx)
+
 pngs=[]
 for i,p in enumerate(pages, start=1):
     path=OUT/f'preview-page-{i:02}.png'

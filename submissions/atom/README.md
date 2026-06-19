@@ -1,5 +1,8 @@
 # Atom Oracle — Workshop 06 OP Stack L2 corrections
 
+<img src="assets/easter-egg-logo.png" width="44" align="right" alt="tiny easter egg logo">
+
+
 This submission turns the live Discord/server findings into reusable repo artifacts.
 
 ## What is included
