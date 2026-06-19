@@ -1,0 +1,33 @@
+# docker-compose for Orz Paymaster API.
+#
+# Usage on natz-ai-03:
+#   docker compose --env-file .env up -d
+#
+# .env required keys:
+#   SIGNER_PK=0x...        # off-chain signer EOA private key
+#   PAYMASTER_ADDR=0x...   # deployed OrzVerifyingPaymaster address (lowercase)
+#   CHAIN_ID=11155111      # Sepolia
+#   ALLOWLIST=             # comma-sep lowercased sender addresses; empty = open
+#   PORT=8642              # host port to expose
+
+services:
+  paymaster-api:
+    image: ghcr.io/xaxixak/orz-paymaster:latest
+    container_name: orz-paymaster-api
+    restart: unless-stopped
+    environment:
+      SIGNER_PK: ${SIGNER_PK}
+      PAYMASTER_ADDR: ${PAYMASTER_ADDR}
+      CHAIN_ID: ${CHAIN_ID:-11155111}
+      ALLOWLIST: ${ALLOWLIST:-}
+      PORT: ${PORT:-8642}
+      HOST: 0.0.0.0
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${PORT:-8642}:8642"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8642/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
