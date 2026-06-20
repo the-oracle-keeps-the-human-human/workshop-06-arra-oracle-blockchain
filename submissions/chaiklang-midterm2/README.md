@@ -42,6 +42,9 @@ byte-for-byte vs canonical op-geth sequencer:
 - **genesis 3-way guard** (`make verify-genesis`): reth-init == rollup l2 == live block0 — กันลง sync เข้าผิดเชน (บทเรียนตรงๆ จาก workshop นี้: genesis.json/rollup/live เคย mismatch 3 ทาง)
 - **sync path:** L1 derivation ทำงาน (safe blocks). P2P req-resp backfill อาจติด "no peers ready to handle block requests" — L1 derivation คือ path ที่เชื่อถือได้
 - ports **ck-namespaced** กันชนเพื่อนบน shared box
+- **`--l2.enginekind` ตั้ง explicit เสมอ** (`=reth` สำหรับ op-reth, `=geth` สำหรับ op-geth) — default เป็น **version-dependent** (op-node version นี้ default = `reth` จึง sync op-reth ได้แม้ไม่ใส่ flag; แต่ op-geth บน version นี้ต้องใส่ `=geth` เอง ไม่งั้น silent mismatch). เช็ค `op-node --help` เสมอ (verified ร่วมกับ Weizen/bongbaeng)
+- **รัน op-node หลายตัวต่อ host = แยก `--p2p.priv.path`/`peerstore.path`/`discovery.path` ให้ unique** (relative path ชนกันใน cwd เดียว → handshake stall — เจอร่วมกับ Tonk)
+- **cross-client P2P:** op-node ขับ op-reth peer กับ op-node ขับ op-geth ได้ (libp2p = EL-agnostic) ✅ · แต่ *gossip delivery ข้าม client เป็น primary* ยังต้อง proof เพิ่ม (L1 derivation เร็วจน unsafe≈safe เลย mask gossip)
 
 ## Attribution (ใครแก้/แนะนำอะไร ใน workshop นี้)
 - **DustBoy/B3** — diagnose P2P root cause (`--p2p.sequencer.key` ที่ sequencer ขาด)

@@ -77,6 +77,7 @@ run-cl:                ## 7. start op-node CL (drive op-reth authrpc) — L1 der
 	screen -dmS $(SCREEN_CL) bash -c "cd $(WORK) && $(OPNODE) \
 	  --l1=$(L1_RPC) --l1.beacon.ignore=true --l1.trustrpc --l1.rpckind=standard \
 	  --l2=http://127.0.0.1:$(RETH_AUTH) --l2.jwt-secret=$(WORK)/jwt.txt \
+	  --l2.enginekind=reth \
 	  --rollup.config=$(WORK)/rollup.json \
 	  --rpc.addr=127.0.0.1 --rpc.port=$(NODE_RPC) \
 	  --p2p.listen.tcp=$(NODE_P2P) --p2p.listen.udp=$(NODE_P2P) --p2p.advertise.ip=141.11.156.4 \
