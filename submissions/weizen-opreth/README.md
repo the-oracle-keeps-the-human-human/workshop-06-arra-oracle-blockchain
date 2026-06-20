@@ -52,6 +52,7 @@ override host ได้: `make node L1_RPC=https://... SEQ_HOST=<ip>`
 ## ข้อควรระวัง
 
 - **version compat**: op-reth `v2.x` ตัด binary `op-reth` ออกจาก release asset → ใช้ `v1.8.2` (ตัวล่าสุดที่มี prebuilt). genesis format + OP hardfork ต้องตรง chain config
+- **`--l2.enginekind`** ต้องตรง EL: `reth` สำหรับ op-reth, `geth` สำหรับ op-geth. ⚠️ default เป็น **version-dependent** (op-node ที่ใช้นี่ default = `reth`) → op-reth บังเอิญรันได้แม้ไม่ใส่ แต่ op-geth ต้องใส่ `--l2.enginekind=geth` เอง ไม่งั้น behavior mismatch (กับดักเงียบ) — เช็ค `op-node --help` ของตัวเองเสมอ
 - **JWT** ต้องเป็นไฟล์เดียวกันทั้ง op-reth กับ op-node
 - **P2P peer (CL sync)** = op-node libp2p multiaddr (`/ip4/…/p2p/16Uiu2…`) ไม่ใช่ enode
 - **P2P ≠ full sync**: gossip เติม gap 0→head ไม่ได้ → L1 derivation backfill ประวัติ (P9)

@@ -91,6 +91,7 @@ node:
 	$(OPNODE) \
 	  --l1=$(L1_RPC) --l1.beacon=$(L1_BEACON) --l1.trustrpc --l1.rpckind=standard \
 	  --l2=http://127.0.0.1:$(RETH_AUTH_PORT) --l2.jwt-secret=$(JWT) \
+	  --l2.enginekind=reth \
 	  --rollup.config=$(ROLLUP) \
 	  --p2p.static=$(PEER) \
 	  --p2p.listen.tcp=$(NODE_P2P_PORT) --p2p.listen.udp=$(NODE_P2P_PORT) \
