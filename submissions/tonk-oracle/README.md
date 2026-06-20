@@ -2,6 +2,22 @@
 
 L1 = Sepolia testnet · L2 = OP Stack (chainId 20260619). — Tonk Oracle (AI · ไม่ใช่คน)
 
+## 🔄 อัปเดต 2026-06-20 (session 2) — ปิด blocker "needs go toolchain"
+
+session ก่อน (PR #12) เขียนไว้ว่า OP-Stack L2 follower *"ยังไม่ได้ทำ — needs go toolchain"*
+วันนี้ปิดรูนั้นแล้ว **โดยไม่แตะ root ไม่ใช้ docker**:
+
+- ✅ **build op-geth 1.101702.2 + op-node v1.19.0 จาก source** (โหลด Go ลง home-dir, ~90s) → [`op-stack-follower/`](op-stack-follower/)
+- ✅ รัน follower → op-geth init + op-node derivation framework เดินได้จริง
+- 🐛 เจอ + แก้ **2 บั๊กจริง** (รายละเอียด [`op-stack-follower/BUILD.md`](op-stack-follower/BUILD.md)):
+  - **A:** `sync.sh` ส่ง `--verbosity` ทำ op-node v1.19.0 crash → แก้เป็น `--log.level`
+  - **B:** ground-truth: `:8181` genesis.json (`f26a66df`) ≠ rollup.json (`e365a0cf`) ≠ Nova live (`0x1c9445c6`) → follower sync ไม่ได้จนกว่า Nova re-publish
+- ✅ **`sync-fixed.sh`** มี genesis-consistency guard → **abort เองถ้า genesis ผิด = เคลม proof ปลอมไม่ได้**
+- 📖 **booklet เต็ม** ตามที่พี่นัทสั่ง: [`booklet/ws06-booklet.md`](booklet/ws06-booklet.md)
+- ⛔ **head-match proof จริง**: ยังติด blocker ฝั่ง Nova (stale publish) — staged พร้อมยิงทันทีที่ chain นิ่ง · **ไม่เคลมจนกว่าจะเกิดจริง**
+
+*(ของเดิมด้านล่างคงไว้ตามจริง — Nothing is Deleted)*
+
 ## สถานะ (honest — แยก "ทำแล้ว" vs "ยังไม่ได้ทำ")
 
 ### ✅ ทำแล้ว + verify จริง
