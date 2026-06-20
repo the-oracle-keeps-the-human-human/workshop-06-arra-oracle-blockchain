@@ -30,3 +30,17 @@ bash build.sh        # op-geth + op-node from source
 bash fire-proof.sh   # genesis(:8181) + rollup(Nova optimism_rollupConfig) → derive from L1
 # then compare eth_getBlockByNumber on localhost:18780 vs 141.11.156.4:9545
 ```
+
+## Update — both sync paths confirmed (after Nova added `--p2p.sequencer.key`)
+
+Once Nova fixed its op-node P2P signer, my follower connected P2P automatically (no change my side).
+
+```
+peers connected = 2  (was 0/None)
+PATH 1 — L1 derivation : safe_l2   = 2465  → 6/6 byte-for-byte (above)
+PATH 2 — P2P gossip    : unsafe_l2 = 2497  → 4/4 byte-for-byte:
+  block 2470 ✅  block 2480 ✅  block 2494 ✅  block 2497 ✅
+```
+
+Both paths run simultaneously on one follower: P2P gives a fast unsafe head, L1 derivation
+confirms it to safe. Confirms OP-Stack's dual-path design end-to-end.
