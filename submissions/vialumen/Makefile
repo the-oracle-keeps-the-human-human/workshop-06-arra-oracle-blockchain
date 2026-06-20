@@ -132,6 +132,7 @@ run: $(GETH_BIN) $(OPNODE_BIN) rollup.json jwt.txt
 		--rpc.addr=0.0.0.0 --rpc.port=9547 \
 		--p2p.static=$(NOVA_PEER) \
 		--p2p.listen.tcp=9227 \
+		--l2.enginekind=geth \
 		--log.level=info \
 		2>&1 | tee $(WORKDIR)/opnode.log"
 	@echo "=== Follower running in tmux: via-geth + via-opnode ==="
