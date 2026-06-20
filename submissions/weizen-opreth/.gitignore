@@ -1,0 +1,5 @@
+data/
+jwt.txt
+op-node
+*.log
+chain/genesis.json
