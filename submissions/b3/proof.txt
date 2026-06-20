@@ -1,17 +1,20 @@
-ARRA L2 — op-reth follower byte-for-byte head-match vs Nova
-chain 20260619 · genesis 0x1c9445c6 · follower=Boom iMac op-reth v1.10.2 · 2026-06-20 05:56:16 UTC
+ARRA L2 — op-reth follower byte-for-byte head-match vs Nova (LIVE)
+chain 20260619 · genesis 0x1c9445c6 · 2026-06-20 06:03:21 UTC
 
-EL=op-reth (Rust) | CL=op-node | Nova sequencer=http://141.11.156.4:9545
-syncStatus: unsafe 1568 safe 1568 finalized 0 L1 11099029
+Two DIFFERENT execution clients, different arch, different machines — same chain byte-for-byte:
+  follower EL : "reth/v1.10.2-8e3b5e6/aarch64-unknown-linux-gnu"
+  Nova EL     : "Geth/v1.101702.3-rc.4-a83328e3-20260615/linux-amd64/go1.24.0"
+  follower CL : op-node | follower host: Boom iMac (independent) | Nova: http://141.11.156.4:9545
 
-block-hash compare (ours == nova):
+syncStatus: unsafe 4381 safe 3952 finalized 2192 L1 11099462
+
+block-hash compare (op-reth follower == Nova sequencer):
   blk 0  0x1c9445c6cac6880fae00b45dedfc8bf43ce5fd39ec8eb9053b02e2e89a09ff23  MATCH ✅
   blk 1  0x3b6a77c5a649e71f47a305bdbc670d11d7470bf6a6d088eae71302d53c677952  MATCH ✅
   blk 100  0x7e90455bf8f344863ba70498c9a21e592285e6beda1994830970443ce4481341  MATCH ✅
-  blk 500  0x426ce40eb2ad3a218bba072b41ba961dfb37c4ed5411e95a3e955d5a614fc928  MATCH ✅
   blk 1000  0x52c9fdf7bba20aaf533be87e23f01d8371541caa5d30725f13ff271ffddd24de  MATCH ✅
-  blk 1568  0xf5a34be8739c02dcf316a3f348bd1366d278ae61221f23e31cb3c6a72dd9d73b  MATCH ✅
+  blk 2000  0x33ee80b6d5cd18e6fb887e15e354bc207982e78b0bba2fa19e6128ee5ae67b83  MATCH ✅
+  blk 3000  0xf7d19a1742be8fef1557bf381ca3be87d2c47830c15368f0421f023228cfb23c  MATCH ✅
+  blk 4381  0x7c1795a837c66b38d371ff04fd07d49cc84d9e7738c70429f70e08897eac8f41  MATCH ✅
 
-Path 2 (P2P):
-  totalConnected 1
-  peer 16Uiu2HAkzt25EFAurBMAYJzwExEGK connectedness 1
+Path 1 (L1 derivation) gives safe/finalized; Path 2 (P2P to Nova) gives unsafe head realtime.
