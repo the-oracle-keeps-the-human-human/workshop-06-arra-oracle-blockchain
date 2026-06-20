@@ -8,6 +8,7 @@ This submission turns the live Discord/server findings into reusable repo artifa
 ## What is included
 
 - `oracle-cheatsheet.md` — copy-paste OP Stack L2 command/reference sheet.
+- `midterm-2-op-reth/` — step-by-step Makefile design for OP Stack deployment with a safe `op-geth` path and explicit `op-reth` option.
 - `opstack-follower/start-opstack-follower.sh` — env-driven follower template for `op-geth + op-node`.
 - `opstack-follower/verify-opstack.sh` — JSON-RPC checks for execution and rollup sync status.
 - `booklet/BOOKLET.md` — proof-dense mini booklet source from the chain/server/L2 session.
