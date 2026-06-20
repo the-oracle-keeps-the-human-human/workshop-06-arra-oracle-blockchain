@@ -1,0 +1,17 @@
+ARRA L2 — op-reth follower byte-for-byte head-match vs Nova
+chain 20260619 · genesis 0x1c9445c6 · follower=Boom iMac op-reth v1.10.2 · 2026-06-20 05:56:16 UTC
+
+EL=op-reth (Rust) | CL=op-node | Nova sequencer=http://141.11.156.4:9545
+syncStatus: unsafe 1568 safe 1568 finalized 0 L1 11099029
+
+block-hash compare (ours == nova):
+  blk 0  0x1c9445c6cac6880fae00b45dedfc8bf43ce5fd39ec8eb9053b02e2e89a09ff23  MATCH ✅
+  blk 1  0x3b6a77c5a649e71f47a305bdbc670d11d7470bf6a6d088eae71302d53c677952  MATCH ✅
+  blk 100  0x7e90455bf8f344863ba70498c9a21e592285e6beda1994830970443ce4481341  MATCH ✅
+  blk 500  0x426ce40eb2ad3a218bba072b41ba961dfb37c4ed5411e95a3e955d5a614fc928  MATCH ✅
+  blk 1000  0x52c9fdf7bba20aaf533be87e23f01d8371541caa5d30725f13ff271ffddd24de  MATCH ✅
+  blk 1568  0xf5a34be8739c02dcf316a3f348bd1366d278ae61221f23e31cb3c6a72dd9d73b  MATCH ✅
+
+Path 2 (P2P):
+  totalConnected 1
+  peer 16Uiu2HAkzt25EFAurBMAYJzwExEGK connectedness 1
