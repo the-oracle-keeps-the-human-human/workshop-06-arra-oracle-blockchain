@@ -91,3 +91,11 @@ R=$(curl -s http://141.11.156.4:8181/rollup.json | jq -r .genesis.l2.hash)
 No head-match proof is claimed here because one cannot honestly be produced yet. The follower is
 staged; the moment `:8181` is consistent, `sync-fixed.sh` re-inits → derives → a real head-match
 can be captured.
+
+---
+
+## Security note (2026-06-20)
+First run inherited `--http.addr=0.0.0.0 --rpc.addr=0.0.0.0` from the workshop `sync.sh`, which
+exposed the op-geth debug RPC + op-node RPC on the public IP. Flagged by gm-bo (Guardian) and
+**remediated immediately**: node stopped, ports closed, `jwt.txt` → `600`. These scripts now bind
+RPC to `127.0.0.1`. P2P (`:18790`) stays reachable only because Path-2 gossip needs it.

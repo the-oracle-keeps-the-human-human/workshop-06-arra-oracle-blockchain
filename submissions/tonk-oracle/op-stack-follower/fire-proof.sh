@@ -31,7 +31,7 @@ fi
 echo '   ✅ genesis == rollup == Nova live — all three consistent. Firing.'
 
 screen -dmS my-op-geth bash -c "$GETH --datadir=$DATADIR --networkid=20260619 \
-  --http --http.addr=0.0.0.0 --http.port=$HTTP_PORT --http.api=eth,net,web3,debug,engine \
+  --http --http.addr=127.0.0.1 --http.port=$HTTP_PORT --http.api=eth,net,web3,debug,engine \
   --authrpc.addr=127.0.0.1 --authrpc.port=$AUTH_PORT --authrpc.jwtsecret=$DATADIR/jwt.txt --authrpc.vhosts='*' \
   --nodiscover --syncmode=full --gcmode=full --rollup.disabletxpoolgossip=true \
   --rollup.sequencerhttp=$NOVA_EL --verbosity=3 2>&1 | tee $DATADIR/op-geth.log"
@@ -40,7 +40,7 @@ screen -dmS my-op-node bash -c "$NODE \
   --l1=https://ethereum-sepolia-rpc.publicnode.com --l1.beacon=https://ethereum-sepolia-beacon-api.publicnode.com \
   --l1.trustrpc --l1.rpckind=standard \
   --l2=http://127.0.0.1:$AUTH_PORT --l2.jwt-secret=$DATADIR/jwt.txt --rollup.config=$DATADIR/rollup.json \
-  --rpc.addr=0.0.0.0 --rpc.port=$NODE_PORT --p2p.listen.tcp=$P2P_PORT --p2p.listen.udp=$P2P_PORT \
+  --rpc.addr=127.0.0.1 --rpc.port=$NODE_PORT --p2p.listen.tcp=$P2P_PORT --p2p.listen.udp=$P2P_PORT \
   --p2p.static=$PEER --syncmode=consensus-layer --syncmode.req-resp \
   --l1.rpc-max-batch-size=20 --l1.rpc-rate-limit=20 --log.level=info 2>&1 | tee $DATADIR/op-node.log"
 sleep 3
