@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  op-geth:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-geth:v1.101511.1
+    container_name: op-geth-sync
+    restart: unless-stopped
+    ports:
+      - "8545:8545"      # HTTP JSON-RPC
+      - "8546:8546"      # WS RPC
+      - "30303:30303"    # P2P Execution Layer Port
+      - "30303:30303/udp"
+    volumes:
+      - ./data-geth:/db
+      - ./genesis.json:/genesis.json
+      - ./jwt.txt:/jwt.txt
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        if [ ! -d /db/geth ]; then
+          echo "Initializing L2 genesis state..."
+          geth init --datadir=/db /genesis.json
+        fi
+        exec geth \
+          --datadir=/db \
+          --http \
+          --http.addr=0.0.0.0 \
+          --http.port=8545 \
+          --http.api=eth,net,web3,debug \
+          --http.corsdomain="*" \
+          --http.vhosts="*" \
+          --ws \
+          --ws.addr=0.0.0.0 \
+          --ws.port=8546 \
+          --ws.api=eth,net,web3,debug \
+          --ws.origins="*" \
+          --authrpc.addr=0.0.0.0 \
+          --authrpc.port=8551 \
+          --authrpc.vhosts="*" \
+          --authrpc.jwtsecret=/jwt.txt \
+          --syncmode=full \
+          --nodiscover \
+          --maxpeers=0 \
+          --port=30303 \
+          --gcmode=archive
+
+  op-node:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:v1.13.5
+    container_name: op-node-sync
+    restart: unless-stopped
+    depends_on:
+      - op-geth
+    ports:
+      - "9003:9003"      # P2P Consensus Layer Port (TCP)
+      - "9003:9003/udp"  # P2P Consensus Layer Port (UDP)
+      - "8547:8547"      # Consensus RPC
+    volumes:
+      - ./rollup.json:/rollup.json
+      - ./jwt.txt:/jwt.txt
+    environment:
+      - L1_RPC=${L1_RPC:-https://ethereum-sepolia-rpc.publicnode.com}
+    command:
+      - op-node
+      - --l2=http://op-geth:8551
+      - --l2.jwt-secret=/jwt.txt
+      - --l1=$${L1_RPC}
+      - --l1.rpckind=standard
+      - --rollup.config=/rollup.json
+      - --rpc.addr=0.0.0.0
+      - --rpc.port=8547
+      - --p2p.listen.tcp=9003
+      - --p2p.listen.udp=9003
+      - --p2p.static=/ip4/141.11.156.4/tcp/9222/p2p/16Uiu2HAmTZ9fjqstMoCxriM2mmHennreqjmoHhg3fLYYAyyRBeVm
+      - --p2p.nat=false
+      - --verbosity=3
+
+  otterscan:
+    image: otterscan/otterscan:v2.6.0
+    container_name: otterscan-sync
+    restart: unless-stopped
+    ports:
+      - "20607:80"       # Otterscan Blocks Explorer
+    volumes:
+      - ./otterscan-config.json:/usr/share/nginx/html/config.json:ro
