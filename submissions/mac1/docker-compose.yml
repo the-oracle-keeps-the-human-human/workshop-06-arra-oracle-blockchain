@@ -71,7 +71,7 @@ services:
       - --rpc.port=8547
       - --p2p.listen.tcp=9003
       - --p2p.listen.udp=9003
-      - --p2p.static=/ip4/141.11.156.4/tcp/9222/p2p/16Uiu2HAmTZ9fjqstMoCxriM2mmHennreqjmoHhg3fLYYAyyRBeVm
+      - --p2p.static=/ip4/141.11.156.4/tcp/9227/p2p/16Uiu2HAmHdqUpiFA4y9ftVzNvoDPUvuAkFr6irdWP8zjCN2ZNqVa
       - --p2p.nat=false
       - --verbosity=3
 
