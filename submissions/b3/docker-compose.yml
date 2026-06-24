@@ -1,0 +1,60 @@
+name: arra-l2-reth-follower
+services:
+  op-reth:
+    image: ghcr.io/paradigmxyz/op-reth:latest
+    container_name: arra-op-reth
+    environment:
+      - "NO_PROXY=*"
+      - "no_proxy=*"
+      - "HTTP_PROXY="
+      - "HTTPS_PROXY="
+    volumes:
+      - ./genesis.json:/genesis.json:ro
+      - ./jwt.txt:/jwt.txt:ro
+      - ./datadir:/data
+    command:
+      - node
+      - --chain=/genesis.json
+      - --datadir=/data
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.jwtsecret=/jwt.txt
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=eth,net,web3,debug
+      - --port=30303
+      - --disable-discovery
+      - --rollup.sequencer-http=http://141.11.156.4:9545
+      - --rollup.disable-tx-pool-gossip
+    ports: ["8645:8545"]
+  op-node:
+    image: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:latest
+    container_name: arra-op-node-reth
+    depends_on: [op-reth]
+    environment:
+      - "NO_PROXY=*"
+      - "no_proxy=*"
+      - "HTTP_PROXY="
+      - "HTTPS_PROXY="
+      - "http_proxy="
+      - "https_proxy="
+      - "ALL_PROXY="
+      - "all_proxy="
+    volumes:
+      - ./rollup.json:/rollup.json:ro
+      - ./jwt.txt:/jwt.txt:ro
+    command:
+      - op-node
+      - --l2=http://op-reth:8551
+      - --l2.jwt-secret=/jwt.txt
+      - --rollup.config=/rollup.json
+      - --l1=${L1_RPC}
+      - --l1.beacon=${L1_BEACON}
+      - --l1.trustrpc
+      - --p2p.static=/ip4/141.11.156.4/tcp/9227/p2p/16Uiu2HAkzt25EFAurBMAYJzwExEGKV4aUYkce7aRbEZwUDFmXoao
+      - --p2p.listen.tcp=9322
+      - --p2p.listen.udp=9322
+      - --rpc.addr=0.0.0.0
+      - --rpc.port=7545
+    ports: ["7647:7545"]
